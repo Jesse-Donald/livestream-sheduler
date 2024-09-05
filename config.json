@@ -1,0 +1,8 @@
+{
+    "PlanningCenterAppID":"<Your-App-ID>",
+    "PlanningCenterAppSecret":"Your-App-Secret",
+
+    "PlanningCenterServiceTypeName":"Sabbath Service",
+
+    "UnsplashAppID":"<Your-App-ID>"
+}
