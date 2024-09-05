@@ -16,4 +16,7 @@ Enter the generated App Id against UnsplashAppID
 To obtain the Google Cloud credentials follow the guide here: https://dennistt.net/2022/01/24/youtube-live-stream-scheduler-part-2/ to obtain the credentials.json file
 run the googleAuth.py file to ensure that the application has been correclty authorized and linked to your account. These are the only credentials that are not inclided in the config.json file
 
+![thumb](https://github.com/user-attachments/assets/a7d3d525-052f-44a2-83f8-939ca4422474)
 
+This will generate a Livestream scheduled for 10:45 am 🕥 the next Saturday morning using the information provided in the user's Planning Center account
+![logo-full-color](https://github.com/user-attachments/assets/7ded16b1-4639-408c-860d-e5b8ab4e78bc)
