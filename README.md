@@ -20,3 +20,4 @@ run the googleAuth.py file to ensure that the application has been correclty aut
 
 This will generate a Livestream scheduled for 10:45 am 🕥 the next Saturday morning using the information provided in the user's Planning Center account
 ![logo-full-color](https://github.com/user-attachments/assets/7ded16b1-4639-408c-860d-e5b8ab4e78bc)
+You can schedule this python script to run once a week using Cron on Linux / MacOS and Task Scheduler on Windows machines see https://crontab.guru for help generating the cron string
