@@ -4,5 +4,9 @@
 
     "PlanningCenterServiceTypeName":"Sabbath Service",
 
+    "ErrorEmailSender":"<Your-Email-Address>",
+    "GmailAppID":"<Your-Gmail-App-ID>",
+    "ErrorEmailRecipients":"<Recipients-For-Error-Email>",
+
     "UnsplashAppID":"<Your-App-ID>"
 }
