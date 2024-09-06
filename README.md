@@ -18,6 +18,7 @@ run the googleAuth.py file to ensure that the application has been correclty aut
 
 ![thumb](https://github.com/user-attachments/assets/a7d3d525-052f-44a2-83f8-939ca4422474)
 
-This will generate a Livestream scheduled for 10:45 am 🕥 the next Saturday morning using the information provided in the user's Planning Center account
+This will generate a Livestream scheduled for 10:45 am 🕥 the next Saturday morning using the information provided in the user's Planning Center account. By default this stream will be set as private to ensure you are able to check the details before the stream becomes visible and can be made public either using the livestreaming dashboard or this behaviour overridden by using the makePublic script.
+
 ![logo-full-color](https://github.com/user-attachments/assets/7ded16b1-4639-408c-860d-e5b8ab4e78bc)
 You can schedule this python script to run once a week using Cron on Linux / MacOS and Task Scheduler on Windows machines see https://crontab.guru for help generating the cron string
