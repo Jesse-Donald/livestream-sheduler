@@ -1,5 +1,5 @@
 #########################################
-#      Livestream Scheduler V1.0        #
+#      Livestream Scheduler V1.5        #
 #########################################
 
 Please replace the placeholder information found in the config.json file to set up the application.
@@ -14,6 +14,7 @@ Register with Unsplash as a developer using the following link: https://unsplash
 Enter the generated App Id against UnsplashAppID
 
 To obtain the Google Cloud credentials follow the guide here: https://dennistt.net/2022/01/24/youtube-live-stream-scheduler-part-2/ to obtain the credentials.json file
-run the googleAuth.py file to ensure that the application has been correclty authorized and linked to your account. These are the only credentials that are not inclided in the config.json file
+
+Once running use the 'Get Auth URL' button and follow the prompts to give the app access to your Google Account. These are the only credentials that are not incluided in the config.json file
 
 
