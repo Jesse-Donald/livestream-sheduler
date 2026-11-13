@@ -1,6 +1,6 @@
 from pypco import PCO
 import json
-from getConfig import getConfig
+from getConfig import getConfig, writeConfig
 preacher =''
 def getNames():
         global preacher
@@ -13,10 +13,10 @@ def getNames():
 
         response = pco.get('https://api.planningcenteronline.com/services/v2/service_types')
         for i in response['data']:
-                if i['attributes']['name'] == 'Sabbath Service':
+                if i['attributes']['name'] == config['PlanningCenterServiceTypeName']:
                         service_type_id = i['id']
-	
-        api = 'https://api.planningcenteronline.com/services/v2/service_types/' + service_type_id + '/plans'
+
+        api = 'https://api.planningcenteronline.com/services/v2/service_types/'+ service_type_id +'/plans'
 	
         searched_plans = pco.get(api + '?filter=future&per_page=1')
 	
@@ -34,4 +34,7 @@ def getNames():
                         print(member['attributes']['name'] + ' is preaching')
                         preacher = member['attributes']['name']
 	
+        writeConfig('Preacher', preacher)
+        writeConfig('SermonTitle', sermon_title)
+        writeConfig('Series', series)
         return(preacher, sermon_title, series)
