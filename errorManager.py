@@ -2,7 +2,11 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from getConfig import getConfig
+from getConfig import getConfig, writeConfig
+
+def save(err):
+    writeConfig('Error', err)
+    writeConfig('Status', 'Error')
 
 def send(to_number, err):
 
