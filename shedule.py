@@ -1,98 +1,181 @@
+'''--------------IMPORT SECTION-------------'''
+#External Modules
 import google
+import google.auth.transport.requests
+import requests
 from google.oauth2.credentials import Credentials
 from googleapiclient.http import MediaFileUpload
+from googleapiclient.discovery import build
 import google.auth.transport.requests
-from Buletin2Youtube import getNames
+from google_auth_oauthlib.flow import InstalledAppFlow
 from datetime import datetime
 import pytz
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+import os
 
-from unsplash.api import Api
-from unsplash.auth import Auth
+#Internal Modues
 
-def adding_text(img, text, position, size, colour, font):
-    font = ImageFont.truetype(font, size)
-    W, H = position
-    draw = ImageDraw.Draw(img)
-    _, _, w, h = draw.textbbox((0, 0), text, font=font)
-    draw.text(((W-w)/2, (H-h)/2), text, font=font, fill=colour)
-    return img
-    
-name, sermonTitle = getNames()
+from planningCenter import getNames
+from getThumb import generateThumb
+from getConfig import getConfig, writeConfig
+import errorManager
 
-raw_image = requests.get('https://source.unsplash.com/1280x720/?landscape').content
-img = Image.open(BytesIO(raw_image)).convert('RGBA')
-template_image=Image.open('thumb-template.png').convert('RGBA')
-generated = Image.alpha_composite(img, template_image)
-generated = adding_text(generated, "CASTLE HILL SDA CHURCH", (1280, 500), 30, (255, 255, 255), 'Montserrat/static/Montserrat-Regular.ttf')
-generated = adding_text(generated, '"' + sermonTitle + '"', (1280, 720), 65, (255, 255, 255), 'Aleo/Aleo-Regular.ttf')
-generated = adding_text(generated, name, (1280, 900), 30, (255, 255, 255), 'Montserrat/static/Montserrat-Regular.ttf')
-imgpath = generated.save('thumb.png')
-
-localStartTime = datetime.strptime(datetime.strftime(datetime.now(), "%Y-%W") + '-6 10:45:00', "%Y-%W-%w %H:%M:%S")
-utcStartTime = pytz.timezone("Australia/Sydney").localize(localStartTime, is_dst=None).astimezone(pytz.utc)
-print("Sheduling Livestream for: " + localStartTime.strftime("%d %B %Y"))
-
-
+'''--------------Script Methods-------------'''
 
 def refresh_credentials():
-    """
-    Returns current credentials from saved refresh token
-    """
-    credentials = Credentials.from_authorized_user_file("token.json")
-    credentials.refresh(google.auth.transport.requests.Request())
-    return credentials
-    
-from googleapiclient.discovery import build
-livestream_details = {
-    "snippet": {
-        "title": '"' + sermonTitle + '" - ' + name,
-        "scheduledStartTime": utcStartTime.isoformat(),
-        "categoryId": 44,
-        "description": localStartTime.strftime("%d %B %Y"),
-        "thumbnails": {
-        	"default": {
-        		"url": "https://res-2.cloudinary.com/amn/image/upload/c_fill,h_400,w_712/v1646104307/adventistplace/thumbnail_image0_1_iogszh.jpg",
-        		"width": 712,
-        		"height": 400,
-        	}
-        },
-    },
-    "status": {
-        "privacyStatus": "private",
-        "selfDeclaredMadeForKids": False,
-    },
-    "contentDetails": {
-    	"latencyPreference": "low"
-    }
-}
+	request = google.auth.transport.requests.Request()
+	SCOPES = ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/spreadsheets.readonly','https://www.googleapis.com/auth/youtube.upload']
+	creds = None
+	if os.path.exists('token.json'):
+		creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+	if not creds or not creds.valid:
+		if creds and creds.expired and creds.refresh_token:
+				creds.refresh(google.auth.transport.requests.Request())
+		else:
+				flow = InstalledAppFlow.from_client_secrets_file(
+					 'credentials.json', SCOPES)
+				creds = flow.run_console(port=0)
+				print(creds)
+		# Save the credentials for the next run
+		with open('token.json', 'w') as token:
+				token.write(creds.to_json())
+	return creds
 
-print("Building Stream...")
-api = build("youtube", "v3", credentials=refresh_credentials())
-response = api.liveBroadcasts().insert(
-    part="snippet,status,contentDetails",
-    body=livestream_details,
-).execute()
+'''--------------Script Start-------------'''
+def createStream():
+	global livestream_details
+#	name, sermonTitle, theme = getNames()
+	theme = ''
 
-response['snippet']['categoryId'] = '29'
+#Call to generate a thumbnail for the stream
 
-print("Updating Categories...")
+	imgpath = generateThumb()
 
-updated = api.videos().update(
-	part="snippet",
-	body={
-	"id": response['id'],
-	"snippet": response['snippet'],
-	}
-).execute()
+#Generate the time string
 
-print("Setting Thumbnail...")
+	writeConfig('Status', 'Scheduling')
+	config = getConfig()
 
-thumbnail = api.thumbnails().set(
-	videoId = response['id'],
-	media_body=MediaFileUpload('thumb.png')
-).execute()
+	localStartTime = datetime.strptime(datetime.strftime(datetime.now(), "%Y-%W") + '-6 10:45:00', "%Y-%W-%w %H:%M:%S")
+	utcStartTime = pytz.timezone("Australia/Sydney").localize(localStartTime, is_dst=None).astimezone(pytz.utc)
+	print("Sheduling Livestream for: " + localStartTime.strftime("%d %B %Y"))
 
-print("Done!")
+# Build Livestream Object
+	try:
+		livestream_details = {
+			 "snippet": {
+				"title": '"' + config['SermonTitle'] + '" - ' + config['Preacher'],
+				"scheduledStartTime": utcStartTime.isoformat(),
+				"categoryId": 44,
+				"description": localStartTime.strftime("%d %B %Y"),
+				"thumbnails": {
+					"default": {
+						"url": "https://content.api.news/v3/images/bin/07bf526aa6a349ec035ea815c2142944",
+						"width": 712,
+						"height": 400,
+					}
+				},
+			 },
+			 "status": {
+				"privacyStatus": "public",
+				"selfDeclaredMadeForKids": False,
+			 },
+			 "contentDetails": {
+			 	"latencyPreference": "low"
+			 }
+		}
+	        #Create stream entity using the youtube data API
+	
+		print("Building Stream...")
+		api = build("youtube", "v3", credentials=refresh_credentials())
+
+		request = api.playlists().list(
+				part="snippet,contentDetails",
+				maxResults=25,
+				mine=True
+			 ).execute()
+
+		response = api.liveBroadcasts().insert(
+			 part="snippet,status,contentDetails",
+			 body=livestream_details,
+		).execute()
+
+		#Update the stream category as this cannot be done during the initial stream creation
+
+		response['snippet']['categoryId'] = '29'
+
+		print("Updating Categories...")
+
+		updated = api.videos().update(
+			part="snippet",
+			body={
+			"id": response['id'],
+			"snippet": response['snippet'],
+			}
+		).execute()
+
+	        #Update the stream entity to include the generated thumbnail
+
+		print("Setting Thumbnail...")
+
+		thumbnail = api.thumbnails().set(
+			videoId = response['id'],
+			media_body=MediaFileUpload('thumb.png')
+		).execute()
+
+		#Add the stream to the required playlists ("Church Services {year}","Church Services (Recent)" and Theme as in Planning Center
+
+		print("Adding to Playlists...")
+
+		for i in request['items']:
+			if i['snippet']['title'].split(' — ')[0] == theme.split('\n')[0]:
+			 	print(theme.split('\n')[0])
+			 	addplaylist = api.playlistItems().insert(
+			 		part = "snippet",
+			 		body={
+		          "snippet": {
+		            "playlistId": i['id'],
+		            "resourceId": {
+		            "kind": "youtube#video",
+		              "videoId": response['id']
+		            }
+		          }
+		        }
+				).execute()
+			if i['snippet']['title'] == 'Church Services ' + datetime.now().strftime("%Y"):
+				addplaylist = api.playlistItems().insert(
+			 		part = "snippet",
+			 		body={
+		          "snippet": {
+		            "playlistId": i['id'],
+		            "resourceId": {
+		            "kind": "youtube#video",
+		              "videoId": response['id']
+		            }
+		          }
+		        }
+				).execute()
+			if i['snippet']['title'] == 'Church Services (recent)':
+				addplaylist = api.playlistItems().insert(
+			 		part = "snippet",
+			 		body={
+		          "snippet": {
+		            "playlistId": i['id'],
+		            "resourceId": {
+		            "kind": "youtube#video",
+		              "videoId": response['id']
+		            }
+		          }
+		        }
+				).execute()
+
+		writeConfig('Status', 'Done')
+
+	#Error Handling
+
+	except Exception as err:
+		print(err)
+		errorManager.save(str(err))
+ 
