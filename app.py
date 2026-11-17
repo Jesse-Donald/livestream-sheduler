@@ -29,5 +29,5 @@ def authurl():
     data=getConfig()
     return render_template('index.html',data=data, authurl=authurl)
 
-
-app.run()
+if __name__ == "__main__":
+    app.run()
