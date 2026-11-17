@@ -7,10 +7,12 @@ from googleAuth import *
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Length
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
-app.secret_key = 'tO$&!|0wkamvVia0?n$NqIRVWOG'
-csrf = CSRFProtect(app)
+#app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+#app.secret_key = 'tO$&!|0wkamvVia0?n$NqIRVWOG'
+#csrf = CSRFProtect(app)
 
 import secrets
 foo = secrets.token_urlsafe(16)
@@ -39,8 +41,8 @@ def index():
     else:
         form.name.data = data['Preacher']
         form.title.data = data['SermonTitle']
-    if form.is_submitted() and not form.validate():
-        return form.data
+#    if form.is_submitted() and not form.validate():
+#        return form.data
 
   #          message = "That actor is not in our database."
     return render_template('index.html', data=data, form=form)
@@ -57,6 +59,7 @@ def schedule():
     generateThumb()
     data=getConfig()
     return redirect('/stream')
+    return render_template('index.html',data=data)
 
 @app.route("/getauthurl")
 def authurl():
@@ -73,3 +76,8 @@ def auth_return():
     return redirect('https://studio.youtube.com/channel/UCAPsJAqTs3y5a1sogz4BVdw/livestreaming/manage')
 
 #app.run()
+    data=getConfig()
+    return render_template('index.html',data=data, authurl=authurl)
+
+if __name__ == "__main__":
+    app.run()

@@ -13,3 +13,4 @@ def writeConfig(key, value):
     with open('config.json', "w") as f:
         json.dump(config, f)
     return(config)
+

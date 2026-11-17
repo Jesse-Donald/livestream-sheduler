@@ -5,3 +5,5 @@ client-secrets.json
 token.json
 thumb.png
 .DS_Store
+config.json
+
