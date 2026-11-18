@@ -11,7 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.12-slim
 WORKDIR /app
 # Copy only the pre-built virtual environment from the builder stage
-COPY --from=builder /opt/venv /opt/venvENV PATH="/opt/venv/bin:$PATH"
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 # Prevent Python from writing .pyc files to disk
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
