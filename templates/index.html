@@ -9,6 +9,8 @@
       --bg-page: #f8fafc;
       --bg-card: #ffffff;
       --bg-subtle: #f1f5f9;
+      --bg-input: #f8fafc;
+      --bg-input-focus: #ffffff;
       --border: #e2e8f0;
       --text-main: #0f172a;
       --text-muted: #64748b;
@@ -19,7 +21,35 @@
       --status-green-text: #166534;
       --status-red-bg: #fee2e2;
       --status-red-text: #991b1b;
+      --alert-flash-bg: #eff6ff;
+      --alert-flash-border: #bfdbfe;
+      --alert-flash-text: #1e40af;
+      --alert-error-border: #fecaca;
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
       --radius: 12px;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0b1120;
+      --bg-card: #1e293b;
+      --bg-subtle: #162032;
+      --bg-input: #0f172a;
+      --bg-input-focus: #0f172a;
+      --border: #334155;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --accent-blue: #3b82f6;
+      --status-green-bg: rgba(22, 101, 52, 0.35);
+      --status-green-text: #4ade80;
+      --status-red-bg: rgba(153, 27, 27, 0.35);
+      --status-red-text: #f87171;
+      --alert-flash-bg: rgba(30, 58, 138, 0.35);
+      --alert-flash-border: #1d4ed8;
+      --alert-flash-text: #93c5fd;
+      --alert-error-border: #991b1b;
+      --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     * {
@@ -51,14 +81,14 @@
     }
 
     .alert-flash {
-      background-color: #eff6ff;
-      border-color: #bfdbfe;
-      color: #1e40af;
+      background-color: var(--alert-flash-bg);
+      border-color: var(--alert-flash-border);
+      color: var(--alert-flash-text);
     }
 
     .alert-error {
       background-color: var(--status-red-bg);
-      border-color: #fecaca;
+      border-color: var(--alert-error-border);
       color: var(--status-red-text);
     }
 
@@ -236,7 +266,7 @@
     }
 
     .btn-secondary, .form-submit-row input[type="submit"] {
-      background-color: #ffffff;
+      background-color: var(--bg-card);
       color: var(--text-main);
       border-color: var(--border);
       width: 100%;
@@ -288,6 +318,113 @@
     .auth-form input[type="submit"]:hover {
       background-color: #1d4ed8;
     }
+/* Theme Switch Container (Top-Right Corner) */
+.theme-switch-wrapper {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 100;
+  /* Controls the overall size of the switch */
+  font-size: 4px; 
+  cursor: pointer;
+}
+
+@media screen and (max-width: 1000px) {
+  .theme-switch-wrapper {
+    font-size: 7px;
+  }
+}
+
+.toggle-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.toggle-slot {
+  position: relative;
+  height: 10em;
+  width: 20em;
+  border: 2px solid var(--border-tile);
+  border-radius: 10em;
+  background-color: #ffffff;
+  box-shadow: var(--shadow-tile);
+  transition: background-color 250ms, border-color 250ms;
+}
+
+.toggle-checkbox:checked ~ .toggle-slot {
+  background-color: #374151;
+}
+
+.toggle-button {
+  transform: translate(11.75em, 1.75em);
+  position: absolute;
+  height: 6.5em;
+  width: 6.5em;
+  border-radius: 50%;
+  background-color: #ffeccf;
+  box-shadow: inset 0px 0px 0px 0.75em #ffbb52;
+  transition: background-color 250ms, border-color 250ms, transform 500ms cubic-bezier(.26,2,.46,.71);
+}
+
+.toggle-checkbox:checked ~ .toggle-slot .toggle-button {
+  background-color: #485367;
+  box-shadow: inset 0px 0px 0px 0.75em #ffffff;
+  transform: translate(1.75em, 1.75em);
+}
+
+.sun-icon, .moon-icon {
+  position: absolute;
+  inset: 0;
+  height: 6em;
+  width: 6em;
+}
+
+.sun-icon {
+  color: #ffbb52;
+}
+
+.sun-icon-wrapper {
+  position: absolute;
+  height: 6em;
+  width: 6em;
+  opacity: 1;
+  transform: translate(2em, 2em) rotate(15deg);
+  transform-origin: 50% 50%;
+  transition: opacity 150ms, transform 500ms cubic-bezier(.26,2,.46,.71);
+}
+
+.toggle-checkbox:checked ~ .toggle-slot .sun-icon-wrapper {
+  opacity: 0;
+  transform: translate(3em, 2em) rotate(0deg);
+}
+
+.moon-icon {
+  color: #ffffff;
+}
+
+.moon-icon-wrapper {
+  position: absolute;
+  height: 6em;
+  width: 6em;
+  opacity: 0;
+  transform: translate(11em, 2em) rotate(0deg);
+  transform-origin: 50% 50%;
+  transition: opacity 150ms, transform 500ms cubic-bezier(.26,2.5,.46,.71);
+}
+
+.toggle-checkbox:checked ~ .toggle-slot .moon-icon-wrapper {
+  opacity: 1;
+  transform: translate(12em, 2em) rotate(-15deg);
+}
+
+/* Focus ring for keyboard accessibility */
+.toggle-checkbox:focus-visible ~ .toggle-slot {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
   </style>
 </head>
 <body>
@@ -378,6 +515,50 @@
     {% endif %}
     {% endblock %}
   </div>
+<label class="theme-switch-wrapper" aria-label="Toggle dark mode">
+  <input id="theme-toggle" class="toggle-checkbox" type="checkbox" />
+  <div class="toggle-slot">
+    <div class="sun-icon-wrapper">
+      <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+    </div>
+    <div class="toggle-button"></div>
+    <div class="moon-icon-wrapper">
+      <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </div>
+  </div>
+</label>
+<script>
+  const themeCheckbox = document.getElementById("theme-toggle");
+  const root = document.documentElement;
 
+  // Sync initial checkbox state with saved or OS theme
+  const savedTheme = localStorage.getItem("theme");
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = savedTheme ? savedTheme === "dark" : systemDark;
+
+  if (savedTheme) {
+    root.setAttribute("data-theme", savedTheme);
+  }
+  themeCheckbox.checked = isDark;
+
+  // Listen for toggle changes
+  themeCheckbox.addEventListener("change", () => {
+    const nextTheme = themeCheckbox.checked ? "dark" : "light";
+    root.setAttribute("data-theme", nextTheme);
+    localStorage.setItem("theme", nextTheme);
+  });
+</script>
 </body>
 </html>
