@@ -35,7 +35,10 @@ def index():
         writeConfig('Preacher', form.name.data)
         writeConfig('SermonTitle', form.title.data)
         generateThumb()
-        return redirect(url_for('index'))
+        return redirect(os.environ.get(
+        "URL_SUBPATH",
+        "/"
+    ).strip().strip('"').strip("'"))
     else:
         form.name.data = data['Preacher']
         form.title.data = data['SermonTitle']
@@ -46,14 +49,21 @@ def index():
 @app.route("/createstream")
 def generatestream():
     createStream()
-    return redirect(url_for('index'))
+    return redirect(os.environ.get(
+        "URL_SUBPATH",
+        "/"
+    ).strip().strip('"').strip("'"))
 
 
 @app.route("/generateThumb")
 def schedule():
     getNames()
     generateThumb()
-    return redirect(url_for('index'))
+    return redirect(os.environ.get(
+        "URL_SUBPATH",
+        "/"
+    ).strip().strip('"').strip("'"))
+
 
 
 @app.route("/getauthurl")

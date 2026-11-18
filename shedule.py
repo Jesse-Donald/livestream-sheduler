@@ -1,16 +1,9 @@
 '''--------------IMPORT SECTION-------------'''
 #External Modules
-import google
-import google.auth.transport.requests
-import requests
-from google.oauth2.credentials import Credentials
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
-import google.auth.transport.requests
-from google_auth_oauthlib.flow import InstalledAppFlow
 from datetime import datetime
 import pytz
-import requests
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
@@ -20,28 +13,8 @@ import os
 from planningCenter import getNames
 from getThumb import generateThumb
 from getConfig import getConfig, writeConfig
+from googleAuth import refresh_credentials
 import errorManager
-
-'''--------------Script Methods-------------'''
-
-def refresh_credentials():
-	request = google.auth.transport.requests.Request()
-	SCOPES = ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/spreadsheets.readonly','https://www.googleapis.com/auth/youtube.upload']
-	creds = None
-	if os.path.exists('token.json'):
-		creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-	if not creds or not creds.valid:
-		if creds and creds.expired and creds.refresh_token:
-				creds.refresh(google.auth.transport.requests.Request())
-		else:
-				flow = InstalledAppFlow.from_client_secrets_file(
-					 'credentials.json', SCOPES)
-				creds = flow.run_console(port=0)
-				print(creds)
-		# Save the credentials for the next run
-		with open('token.json', 'w') as token:
-				token.write(creds.to_json())
-	return creds
 
 '''--------------Script Start-------------'''
 def createStream():
@@ -89,7 +62,12 @@ def createStream():
 	        #Create stream entity using the youtube data API
 	
 		print("Building Stream...")
-		api = build("youtube", "v3", credentials=refresh_credentials())
+		creds = refresh_credentials()
+		if creds is None:
+			raise RuntimeError(
+				"Google credentials are missing or expired. Use Get Auth URL to sign in again."
+			)
+		api = build("youtube", "v3", credentials=creds)
 
 		request = api.playlists().list(
 				part="snippet,contentDetails",

@@ -3,7 +3,6 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from getConfig import *
-import shedule
 
 os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
 
@@ -43,21 +42,22 @@ def _get_redirect_uri():
 
 def refresh_credentials():
     """Loads saved token.json and refreshes it automatically if expired."""
-    creds = None
-    if os.path.exists(TOKEN_PATH):
-        creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+    if not os.path.exists(TOKEN_PATH):
+        return None
 
-    if creds and creds.valid:
+    creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+
+    if creds.valid:
         return creds
 
-    if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        os.makedirs(DATA_DIR, exist_ok=True)
-        with open(TOKEN_PATH, "w") as token:
-            token.write(creds.to_json())
-        return creds
+    if not creds.refresh_token:
+        return None
 
-    return None
+    creds.refresh(Request())
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(TOKEN_PATH, "w") as token:
+        token.write(creds.to_json())
+    return creds
 
 
 def getAuthURL():
@@ -99,7 +99,7 @@ def auth_creds_return(flask_request, state=None, code_verifier=None):
 
     writeConfig("Status", "Ready")
 
-    localStartTime, utcStartTime, name, sermonTitle, theme = shedule.generateImage(credentials)
-    shedule.generateStream(localStartTime, utcStartTime, name, sermonTitle, theme, credentials)
+    #localStartTime, utcStartTime, name, sermonTitle, theme = shedule.generateImage(credentials)
+    #shedule.generateStream(localStartTime, utcStartTime, name, sermonTitle, theme, credentials)
 
     return credentials
