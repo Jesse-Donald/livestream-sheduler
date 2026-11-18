@@ -1,207 +1,383 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>{% block title %}{% endblock %}Livestream Studio</title>
-<!--link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"-->
-<style>
-@import url('https://fonts.googleapis.com/css?family=Roboto:700');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livestream Studio</title>
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #dc2626;
+      --primary-hover: #b91c1c;
+      --accent-blue: #2563eb;
+      --status-green-bg: #dcfce7;
+      --status-green-text: #166534;
+      --status-red-bg: #fee2e2;
+      --status-red-text: #991b1b;
+      --radius: 12px;
+    }
 
-body {
-	font-family:'Roboto';
-	text-align: center;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.statusGreen {
-	color:#999;
-        text-transform: uppercase;
-        font-size:36px;
-        font-weight:bold;
-        padding-top:200px;
-        position:relative;
-#       width:100%;
-#       bottom:45%;
-        display:block;
-        color:#fff;
-        padding:4px 12px;
-        height:45px;
-#        margin-bottom:45px;
-        display:inline-block;
-        background: #42c58a;
-#	left:15%;
-	border-radius:5px;
-}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
 
-.statusRed {
-	color:#999;
-  	text-transform: uppercase;
-  	font-size:36px;
-  	font-weight:bold;
-  	padding-top:200px;  
-  	position:relative;
-#  	width:100%;
-#  	bottom:45%;
-  	display:block;
-	color:#fff;
-	padding:4px 12px;
-  	height:45px;
-#  	margin-bottom:45px;
-  	display:inline-block;
-	background:#DC143C;
-#	left:15%;
-	border-radius:5px;
-}
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
 
-.myButton, input[type="submit"] {
-	box-shadow: 3px 4px 0px 0px;
-#	background:linear-gradient(to bottom, #79bbff 5%, #378de5 100%);
-	background-color:#adadad;
-	border-radius:5px;
-	border:1px solid;
-	cursor:pointer;
-	color:#ffffff;
-	font-family:Arial;
-	font-size:17px;
-#	font-weight:bold;
-	padding:12px 44px;
-	text-decoration:none;
-#	text-shadow:0px 1px 0px;
-}
-.myButton:hover {
-	background:linear-gradient(to bottom, #378de5 5%, #79bbff 100%);
-	background-color:#378de5;
-}
-.myButton:active {
-	position:relative;
-	top:1px;
-}
+    /* Flash Messages & Error Alerts */
+    .alert {
+      padding: 0.85rem 1.15rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      border: 1px solid transparent;
+    }
 
-.content {
-	width:100%;
-	text-align:center;
-}
+    .alert-flash {
+      background-color: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1e40af;
+    }
 
-h1 {
-  color: #000000;
-  font-size: 24px;
-  text-align: left;
-  margin-top: 30px;
-  padding-bottom: 30px;
-  border-bottom: 1px solid #212121;
-  margin-bottom: 30px;
-  font-weight: 300;
-}
+    .alert-error {
+      background-color: var(--status-red-bg);
+      border-color: #fecaca;
+      color: var(--status-red-text);
+    }
 
-form {
-  font-size: 20pt;
-}
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
 
-#name {
-  width: 32%;
-}
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
 
-#title {
-  width: 35%;
-}
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
 
-h4 {
-    display: inline-block;
-  color: #000000;
-  font-size: 24px;
-  text-align: left;
-  margin-top: 30px;
-  padding-bottom: 30px;
-  margin-bottom: 30px;
-  font-weight: 300;
-}
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
 
-.authurl {
-    font-size: large;
-    border: #000000;
-}
+    .badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
 
-.timestamp {
-#	background:linear-gradient(to bottom, #adadad 5%, #292929 100%);
-	background-color:#adadad;
-	border-radius:6px;
-	border:1px solid #ffffff;
-	display:inline-block;
-	cursor:pointer;
-	position:relative;
-	color:#ffffff;
-	font-family:Arial;
-	font-size:16pt;
-	font-weight:bold;
-	padding:6px 23px;
-	text-decoration:none;
-#       	left:15%;
-}
+    .badge-green {
+      background-color: var(--status-green-bg);
+      color: var(--status-green-text);
+    }
+    .badge-green::before {
+      background-color: var(--status-green-text);
+    }
 
-img {
-position: relative;
-width: 100%;
-border-radius:20px;
-}
+    .badge-red {
+      background-color: var(--status-red-bg);
+      color: var(--status-red-text);
+    }
+    .badge-red::before {
+      background-color: var(--status-red-text);
+    }
 
-@media (width >= 1000px) {
+    /* Schedule Info Banner */
+    .schedule-banner {
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
 
-img {
-    position:absolute;
-    top: 20px;
-    right:20px;
-    max-width:50%;
-    vertical-align: middle;
-    box-shadow: 10px 15px 25px 0 rgba(0,0,0,.2);
-}
+    .schedule-main {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
 
-.content {
-	width: 50%;
-}
+    .schedule-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
 
-}
-        
-</style>
+    /* Main Card */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      color: var(--text-main);
+      background-color: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Thumbnail Preview */
+    .preview-box {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .preview-frame {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background-color: #0f172a;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    .preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Buttons & Links styled as buttons */
+    .btn, input[type="submit"] {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.65rem 1.15rem;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      width: 100%;
+      padding: 0.85rem;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary, .form-submit-row input[type="submit"] {
+      background-color: #ffffff;
+      color: var(--text-main);
+      border-color: var(--border);
+      width: 100%;
+    }
+
+    .btn-secondary:hover, .form-submit-row input[type="submit"]:hover {
+      background-color: var(--bg-subtle);
+    }
+
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text-main);
+      background-color: var(--bg-subtle);
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    /* Auth Section */
+    .auth-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .auth-form {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .auth-form input[type="submit"] {
+      width: auto;
+      background-color: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    .auth-form input[type="submit"]:hover {
+      background-color: #1d4ed8;
+    }
+  </style>
 </head>
-    {% block header %}{% endblock %}
-  <body>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}
-<div class="content">
-  {% block content %}
-  <!--h1> Livestream Studio </h1-->
-  {% if data['Status'] == 'Ready' or data['Status'] == 'Done' %}<p class="statusGreen">{{ data['Status'] }}</p>{% endif %}
-  {% if data['Status'] == 'Error' %}<p class="statusRed">Error</p>{% endif %}
-<br>
-<img src=/stream/static/thumb.png>
-  {% if data['Error'] != '' %}
-  <p style="max-width:40%;">{{ data['Error'] }}</p>
-  {% endif %}
-  <p class="timestamp">Scheduled for: {{ data['StartTime'] }}</p>
-<p>Will be generated at 4:53am UTC on Thursdays (3:53pm AEDT)</p>
-  <form method="POST" action="">
-    {{ form.csrf_token }}
-{{ form.title.label }} {{ form.title }} <br>
-    {{ form.name.label }} {{ form.name }}
-<br><br>
-    {{ form.submit() }}
-</form>
-<br><br>
-  <!--p>Series: {{ data['Series'] }}</p-->
-</div>
-  <br>
-  <a class="myButton" href="/stream/createstream">Create YouTube Livestream</a>
-  <a class="myButton" href="/stream/generateThumb">Refresh from Planning Center</a>
-  {% if data['state'] == Error %}
-  <a class="myButton" href="/stream/getauthurl">Authenticate with Google</a>
-  {% endif %}
-  {% if authurl%}
-  <br>
-  <input type="text" class="authurl" value="{{ authurl }}"></input>
-  <form method="POST" action="/stream/some_other_route">
-    <input type="text" placeholder="Authentication Code">
-    <input type="submit">
-  </form>
-  {% endif %}
-  </body>
-  {% endblock %}
+<body>
+
+  <div class="container">
+    <!-- Flashed Messages -->
+    {% for message in get_flashed_messages() %}
+      <div class="alert alert-flash">{{ message }}</div>
+    {% endfor %}
+
+    {% block content %}
+    <!-- Top Header -->
+    <header>
+      <div class="title-group">
+        <h1>Livestream Studio</h1>
+        {% if data['Status'] == 'Ready' or data['Status'] == 'Done' %}
+          <span class="badge badge-green">{{ data['Status'] }}</span>
+        {% endif %}
+        {% if data['Status'] == 'Error' %}
+          <span class="badge badge-red">Error</span>
+        {% endif %}
+      </div>
+
+      {% if data['state'] == Error %}
+        <a class="btn btn-ghost" href="/stream/getauthurl">Authenticate with Google</a>
+      {% endif %}
+    </header>
+
+    <!-- Error Message Banner -->
+    {% if data['Error'] != '' %}
+      <div class="alert alert-error">{{ data['Error'] }}</div>
+    {% endif %}
+
+    <!-- Schedule Info Box -->
+    <div class="schedule-banner">
+      <div class="schedule-main">Scheduled for: {{ data['StartTime'] }}</div>
+      <div class="schedule-sub">Will be generated at 4:53am UTC on Thursdays (3:53pm AEDT)</div>
+    </div>
+
+    <!-- Main Form & Actions Card -->
+    <main class="card">
+      <form method="POST" action="">
+        {{ form.csrf_token }}
+
+        <div class="form-group">
+          {{ form.title.label }}
+          {{ form.title }}
+        </div>
+
+        <div class="form-group">
+          {{ form.name.label }}
+          {{ form.name }}
+        </div>
+
+        <!-- Thumbnail Preview -->
+        <div class="preview-box">
+          <label>Thumbnail Preview</label>
+          <div class="preview-frame">
+            <img src="/stream/static/thumb.png" alt="Livestream Thumbnail Preview">
+          </div>
+        </div>
+
+        <!-- Primary Action -->
+        <a class="btn btn-primary" href="/stream/createstream">Create YouTube Livestream</a>
+
+        <!-- Secondary Actions: WTForms Submit + Planning Center Refresh -->
+        <div class="action-grid">
+          <div class="form-submit-row">
+            {{ form.submit() }}
+          </div>
+          <a class="btn btn-secondary" href="/stream/generateThumb">Refresh from Planning Center</a>
+        </div>
+      </form>
+    </main>
+
+    <!-- Conditional Google Auth Code Input -->
+    {% if authurl %}
+      <section class="auth-card">
+        <div class="form-group">
+          <label>Google Authorization URL</label>
+          <input type="text" class="authurl" value="{{ authurl }}" readonly>
+        </div>
+        <form method="POST" action="/stream/some_other_route" class="auth-form">
+          <input type="text" name="code" placeholder="Paste Authentication Code">
+          <input type="submit" value="Submit Code">
+        </form>
+      </section>
+    {% endif %}
+    {% endblock %}
+  </div>
+
+</body>
 </html>
