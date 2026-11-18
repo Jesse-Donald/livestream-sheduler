@@ -7,11 +7,10 @@ import shedule
 
 os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
 
-_API_BASE = "https://" + "://googleapis.com"
 SCOPES = [
-    _API_BASE + "youtube",
-    _API_BASE + "spreadsheets.readonly",
-    _API_BASE + "youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/spreadsheets.readonly",
+    "https://www.googleapis.com/auth/youtube.upload",
 ]
 
 DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
@@ -29,8 +28,8 @@ def _get_client_config():
         "web": {
             "client_id": client_id,
             "client_secret": client_secret,
-            "auth_uri": "https://" + "://google.com",
-            "token_uri": "https://" + "://googleapis.com",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
         }
     }
 
