@@ -1,23 +1,19 @@
-FROM python:3.12-slim
-
-# Prevent Python from writing .pyc files and buffer stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# Stage 1: Builder
+FROM python:3.12-slim AS builder
 WORKDIR /app
-
-# Install dependencies first to leverage Docker layer caching
+# Create a virtual environment to isolate dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+# Install build dependencies if needed, then install Python packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
+# Stage 2: Final Runtime
+FROM python:3.12-slim
+WORKDIR /app
+# Copy only the pre-built virtual environment from the builder stage
+COPY --from=builder /opt/venv /opt/venvENV PATH="/opt/venv/bin:$PATH"
+# Prevent Python from writing .pyc files to disk
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 COPY . .
-
-ENV DATA_DIR=/app/data
-RUN mkdir -p /app/data
-VOLUME ["/app/data"]
-
-EXPOSE 8000
-
-# Run Gunicorn with 4 workers bound to all interfaces on port 8000
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:8000", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
