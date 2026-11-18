@@ -1,83 +1,80 @@
-from flask import Flask, render_template, redirect
+import os
+import secrets
+from flask import Flask, render_template, redirect, request, session, url_for
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired, Length
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 from getConfig import *
 from shedule import *
 from getThumb import *
 from planningCenter import *
 from googleAuth import *
-from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Length
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
-#app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
-#app.secret_key = 'tO$&!|0wkamvVia0?n$NqIRVWOG'
-#csrf = CSRFProtect(app)
 
-import secrets
-foo = secrets.token_urlsafe(16)
-app.secret_key = foo
+# Trust Nginx Proxy Manager headers (including X-Forwarded-Prefix for /stream)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# Use a fixed secret key from env so sessions survive restarts and multi-worker setups
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "change-me-in-production-to-a-fixed-random-string"
+
 
 class NameForm(FlaskForm):
     title = StringField('Stream Title', validators=[DataRequired()])
     name = StringField('Preacher', validators=[DataRequired(), Length(1, 40)])
     submit = SubmitField('Update Preview')
 
+
 @app.route("/", methods=['GET', 'POST'])
 def index():
-    data=getConfig()
-    form=NameForm()
-#    form.name.data = getConfig()['Preacher']
+    data = getConfig()
+    form = NameForm()
     if form.validate_on_submit():
-        name = form.name.data
-#        if name.lower() in names:
-            # empty the form field
-        form.name.data = ""
-        writeConfig('Preacher', name)
+        writeConfig('Preacher', form.name.data)
         writeConfig('SermonTitle', form.title.data)
         generateThumb()
-            # redirect the browser to another route and template
-        return redirect('/stream')
+        return redirect(url_for('index'))
     else:
         form.name.data = data['Preacher']
         form.title.data = data['SermonTitle']
-#    if form.is_submitted() and not form.validate():
-#        return form.data
 
-  #          message = "That actor is not in our database."
     return render_template('index.html', data=data, form=form)
+
 
 @app.route("/createstream")
 def generatestream():
     createStream()
-    data=getConfig()
-    return redirect('/stream')
+    return redirect(url_for('index'))
+
 
 @app.route("/generateThumb")
 def schedule():
     getNames()
     generateThumb()
-    data=getConfig()
-    return redirect('/stream')
-    return render_template('index.html',data=data)
+    return redirect(url_for('index'))
+
 
 @app.route("/getauthurl")
 def authurl():
-    authurl = getAuthURL()
-    data = getConfig()
-    form=NameForm()
-    form.name.data = data['Preacher']
-    form.title.data = data['SermonTitle']
-    return render_template('index.html', data=data, authurl=authurl, form=form)
+    # Clicking the button hits /getauthurl and immediately redirects to Google
+    auth_url, state, code_verifier = getAuthURL()
+    session["oauth_state"] = state
+    session["code_verifier"] = code_verifier
+    return redirect(auth_url)
+
 
 @app.route("/auth_return")
 def auth_return():
-    auth_creds_return()
-    return redirect('https://studio.youtube.com/channel/UCAPsJAqTs3y5a1sogz4BVdw/livestreaming/manage')
+    auth_creds_return(
+        request,
+        state=session.get("oauth_state"),
+        code_verifier=session.get("code_verifier"),
+    )
+    # Opens the logged-in user's own YouTube Studio
+    return redirect("https://studio.youtube.com")
 
-#app.run()
-    data=getConfig()
-    return render_template('index.html',data=data, authurl=authurl)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
