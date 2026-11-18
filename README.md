@@ -39,9 +39,9 @@ On the Google API Console:
 3. On the Credentials panel, create an “OAuth client ID”. It may ask you to “Configure Consent Screen” first – continue with that if asked: The “User Type” can be External.
 4. The next page will ask what you want the consent screen to look like – just fill out the essentials as this will only be seen by you to generate the initial token.
 5.On the Scopes page, add the following scopes:
-https://www.googleapis.com/auth/youtube
-https://www.googleapis.com/auth/youtube.force-ssl
-https://www.googleapis.com/auth/youtube.upload
+- https://www.googleapis.com/auth/youtube
+- https://www.googleapis.com/auth/youtube.force-ssl
+- https://www.googleapis.com/auth/youtube.upload
 6.On the test user page, you’ll want to add your own account, or the account that you want to create the YouTube videos in. This is important so that the OAuth login will work without being approved by Google.
 7.Continuing with the Credential creation, for the Application Type, select “Desktop app”. The client ID and client secret will now be displayed. Download the JSON version]which will include the two required secrets.
 
@@ -59,14 +59,14 @@ curl 'https://your-server-ip/createstream'
 ```
 
 ## To Do:
-[ ] - Allow configuration of stream start time via the enviornment variables
-[ ] - Support for uploading a custom thumbnail image to override the generated one
-[ ] - Updating an already scheduled stream before the stream starts
+- [ ] Allow configuration of stream start time via the enviornment variables
+- [ ] Support for uploading a custom thumbnail image to override the generated one
+- [ ] Updating an already scheduled stream before the stream starts
 
 ## Completed:
-[x] - Package app as a Docker / Podman container
-[x] - Show error messages on admin page
-[x] - Preview of the stream ad thumbnail added to the admin dashboard
-[x] - Allow for title and preacher to be updated before scheduling the stream
-[x] - Allow users to pass in authentication secrets via environment variables
-[x] - Add button to re-authenticate bot with Google if it gets deauthenticatd
+- [x] Package app as a Docker / Podman container
+- [x] Show error messages on admin page
+- [x] Preview of the stream ad thumbnail added to the admin dashboard
+- [x] Allow for title and preacher to be updated before scheduling the stream
+- [x] Allow users to pass in authentication secrets via environment variables
+- [x] Add button to re-authenticate bot with Google if it gets deauthenticatd
