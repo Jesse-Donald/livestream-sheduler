@@ -1,4 +1,10 @@
+import fcntl
+import json
 import os
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -40,24 +46,80 @@ def _get_redirect_uri():
     ).strip().strip('"').strip("'")
 
 
-def refresh_credentials():
-    """Loads saved token.json and refreshes it automatically if expired."""
+@contextmanager
+def _token_lock():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(os.path.join(DATA_DIR, "token.lock"), "a+") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
+def _client_id_and_secret():
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip().strip('"').strip("'")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip().strip('"').strip("'")
+    return client_id, client_secret
+
+
+def _load_token_info():
     if not os.path.exists(TOKEN_PATH):
         return None
+    with open(TOKEN_PATH, "r") as token:
+        info = json.load(token)
+    client_id, client_secret = _client_id_and_secret()
+    if client_id:
+        info["client_id"] = client_id
+    if client_secret:
+        info["client_secret"] = client_secret
+    return info
 
-    creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
 
-    if creds.valid:
-        return creds
-
-    if not creds.refresh_token:
-        return None
-
-    creds.refresh(Request())
+def _save_credentials(creds, previous_refresh_token=None):
     os.makedirs(DATA_DIR, exist_ok=True)
-    with open(TOKEN_PATH, "w") as token:
-        token.write(creds.to_json())
-    return creds
+    payload = json.loads(creds.to_json())
+    refresh_token = payload.get("refresh_token") or previous_refresh_token
+    if refresh_token:
+        payload["refresh_token"] = refresh_token
+    tmp_path = TOKEN_PATH + ".tmp"
+    with open(tmp_path, "w") as token:
+        json.dump(payload, token, indent=2)
+        token.write("\n")
+    os.replace(tmp_path, TOKEN_PATH)
+
+
+def _needs_refresh(creds, force):
+    if force or not creds.valid or creds.expiry is None:
+        return True
+    expiry = creds.expiry
+    if expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+    return expiry <= datetime.now(timezone.utc) + timedelta(minutes=10)
+
+
+def refresh_credentials(force=False):
+    """Load token.json, refresh with Google if needed, and write back the new tokens."""
+    with _token_lock():
+        info = _load_token_info()
+        if not info:
+            return None
+
+        creds = Credentials.from_authorized_user_info(info, SCOPES)
+        previous_refresh_token = creds.refresh_token or info.get("refresh_token")
+        if not previous_refresh_token:
+            return None
+
+        if not _needs_refresh(creds, force):
+            return creds
+
+        try:
+            creds.refresh(Request())
+        except RefreshError:
+            return None
+
+        _save_credentials(creds, previous_refresh_token=previous_refresh_token)
+        return creds
 
 
 def getAuthURL():
@@ -93,9 +155,8 @@ def auth_creds_return(flask_request, state=None, code_verifier=None):
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
 
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(TOKEN_PATH, "w") as token:
-        token.write(credentials.to_json())
+    with _token_lock():
+        _save_credentials(credentials, previous_refresh_token=credentials.refresh_token)
 
     writeConfig("Status", "Ready")
 

@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+ENV DATA_DIR=/app/data
+RUN mkdir -p /app/data
+VOLUME ["/app/data"]
+
 EXPOSE 8000
 
 # Run Gunicorn with 4 workers bound to all interfaces on port 8000

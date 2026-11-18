@@ -62,7 +62,8 @@ def createStream():
 	        #Create stream entity using the youtube data API
 	
 		print("Building Stream...")
-		creds = refresh_credentials()
+		# Force a refresh so the weekly cron persists any rotated refresh token.
+		creds = refresh_credentials(force=True)
 		if creds is None:
 			raise RuntimeError(
 				"Google credentials are missing or expired. Use Get Auth URL to sign in again."
@@ -156,4 +157,7 @@ def createStream():
 	except Exception as err:
 		print(err)
 		errorManager.save(str(err))
- 
+
+
+generateStream = createStream
+
