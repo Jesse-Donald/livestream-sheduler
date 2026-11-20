@@ -45,9 +45,47 @@ On the Google API Console:
 6.On the test user page, you’ll want to add your own account, or the account that you want to create the YouTube videos in. This is important so that the OAuth login will work without being approved by Google.
 7.Continuing with the Credential creation, for the Application Type, select “Desktop app”. The client ID and client secret will now be displayed. Download the JSON version]which will include the two required secrets.
 
+Enter the details from the google cloud console as below
+```shell
+export GOOGLE_CLIENT_ID='your-google-client-id'
+export GOOGLE_CLIENT_SECRET='your-google-client-secret'
+export GOOGLE_REDIRECT_URI='your-google-redirect-uri' # the address of the app appended with /auth_return
+```
+
 The above steps were based on the guide here: https://dennistt.net/2022/01/24/youtube-live-stream-scheduler-part-2/ 
 
+## Optional variables
+
+There are some optional variables that can be set if required:
+```shell
+export URL_SUBPATH='your url subpath' # e.g. /scheduler NOTE: if you use this option make sure to include this in the redirect URI as well!!
+```
+
 ## Examples
+
+An example of running with all possible variables can be seen below:
+
+```shell
+# build the container
+podman build -t livestream-scheduler:1.5 -f Dockerfile
+
+# run the container
+podman run \
+-p 5000:5000 \
+--name livestream-scheduler \
+-d \
+-e PlanningCenterAppID='your-planning-center-app-id' \
+-e PlanningCenterAppSecret='your-planning-center-app-secret' \
+-e PlanningCenterServiceTypeName='your-service-type-name' \
+-e UnsplashAppID='your-unsplash-app-id' \
+-e GOOGLE_CLIENT_ID='your-google-client-id' \
+-e GOOGLE_CLIENT_SECRET='your-google-client-secret' \
+-e GOOGLE_REDIRECT_URI='https://your.domain.here/scheduler/auth_return' \
+-e URL_SUBPATH='/scheduler' \
+--replace \
+localhost/livestream-scheduler:1.5
+```
+
 ![thumb](https://github.com/user-attachments/assets/a7d3d525-052f-44a2-83f8-939ca4422474)
 
 This will generate a Livestream scheduled for 10:45 am 🕥 the next Saturday morning using the information provided in the user's Planning Center account.
